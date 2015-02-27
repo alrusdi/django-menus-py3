@@ -1,0 +1,4 @@
+include README.*
+recursive-include menus *
+global-exclude *.pyc
+include menus/VERSION
