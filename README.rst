@@ -88,6 +88,9 @@ because I haven't touched this code in a long, long time.
 Changes
 -------
 
+
+1.1.2 - Python 3 support
+
 1.1.1 - Pass through args and kwargs to the test function if it accepts them.
 
 1.0.9 - Allow for adding classes, and buttons as menu items.
