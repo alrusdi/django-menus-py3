@@ -32,13 +32,19 @@ look for any decorators on that view that take a first argument called
 `user` or `u`, and call them with the current request.user object. If
 any fail, then this user may not access that view.
 """
+from functools import reduce
 
 from django import template
 from django.conf import settings
 from django.core.urlresolvers import Resolver404, reverse, resolve
 from django.utils.itercompat import is_iterable
+from django.utils.six import string_types
 
 register = template.Library()
+
+import sys
+IS_PY3 = sys.version_info[0] == 3
+
 
 def get_callable_cells(function):
     """
@@ -50,22 +56,23 @@ def get_callable_cells(function):
     
     This is probably the funkiest introspection code I've ever written in python.
     """
+    fn_closure_name = '__closure__' if IS_PY3 else 'func_closure'
     callables = []
-    if not hasattr(function, 'func_closure'):
+    if not hasattr(function, fn_closure_name):
         if hasattr(function, 'view_func'):
             return get_callable_cells(function.view_func)
-    if not function.func_closure:
+    if not getattr(function, fn_closure_name):
         return [function]
-    for closure in function.func_closure:
+    for closure in getattr(function, fn_closure_name):
         if hasattr(closure.cell_contents, '__call__'):
             # Class-based view does not have a .func_closure attribute.
             # Instead, we want to look for decorators on the dispatch method.
             # We can also look for decorators on a "get" method, if one exists.
             if hasattr(closure.cell_contents, 'dispatch'):
-                callables.extend(get_callable_cells(closure.cell_contents.dispatch.__func__))
+                callables.extend(get_callable_cells(closure.cell_contents.dispatch))
                 if hasattr(closure.cell_contents, 'get'):
-                    callables.extend(get_callable_cells(closure.cell_contents.get.__func__))
-            elif hasattr(closure.cell_contents, 'func_closure') and closure.cell_contents.func_closure:
+                    callables.extend(get_callable_cells(closure.cell_contents.get))
+            elif hasattr(closure.cell_contents, fn_closure_name) and getattr(closure.cell_contents, fn_closure_name):
                 callables.extend(get_callable_cells(closure.cell_contents))
             else:
                 callables.append(closure.cell_contents)
@@ -246,7 +253,7 @@ class MenuItem(template.Node):
             from django.template.loader import get_template, select_template
             if isinstance(file_name, template.Template):
                 t = file_name
-            elif not isinstance(file_name, basestring) and is_iterable(file_name):
+            elif not isinstance(file_name, string_types) and is_iterable(file_name):
                 t = select_template(file_name)
             else:
                 t = get_template(file_name)
