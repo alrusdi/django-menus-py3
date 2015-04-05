@@ -6,9 +6,11 @@ setup(
     name = "django-menus",
     version = menus.__version__,
     description = "Menu helpers for django projects",
-    url = "http://bitbucket.org/schinckel/django-menus/",
+    url = "https://github.com/alrusdi/django-admin-bootstrap-legacy",
     author = "Matthew Schinckel",
     author_email = "matt@schinckel.net",
+    maintainer = 'alrusdi',
+    maintainer_email = 'alrusdi@gmail.com',
     packages = [
         "menus",
         "menus.templatetags"
